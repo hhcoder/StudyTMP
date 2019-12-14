@@ -137,11 +137,15 @@ namespace Playground
             return *this;
         }
 
+        Func& Print()
+        {
+            output_buf->Print();
+            return *this;
+        }
+
         Func& WriteToFile(const std::string& fname)
         {
-            // WriteToFile(fname, *output_buf);
-            output_buf->Print();
-
+            WriteToFile(fname, *output_buf);
             return *this;
         }
 
@@ -175,17 +179,22 @@ int main(int argc, char* argv[])
 
     // Func<GrayImg> func_img(input_buf);
     //
+
+    const int grid_width = 3;
+    const int grid_height = 2;
+
     Func<GrayImg> grid_src(
             std::string("Grid Source"),
             input_buf, 
-            [](GrayImg& in_buf, int x, int y){
-                if( (x/2)%2+(y/2)%2 == 1 )
+            [grid_width, grid_height](GrayImg& in_buf, int x, int y){
+                if( (x/grid_width)%2+(y/grid_height)%2 == 1 )
                     return 255;
                 else
                     return 0;
             });
+
     grid_src.Run()
-            .WriteToFile("./out.y");
+            .Print();
 
     //
     // Func hori_blur(grid_src, [](int x, int y){
