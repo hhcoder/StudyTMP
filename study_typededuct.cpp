@@ -1,4 +1,5 @@
 #include <iostream>
+#include <vector>
 
 namespace ReturnType
 {
@@ -49,9 +50,66 @@ void Exe()
 
 };
 
+namespace TemplateType
+{
+    template <typename T>
+        struct MyContainer : std::vector<T>
+        {
+            template <typename... Args>
+            MyContainer(Args&&... args)
+                : std::vector<T>(std::forward<Args>(args)...){}
+        };
+
+    template <typename ContainerType>
+        struct ContainerCtrl
+        {
+            ContainerCtrl(const ContainerType& in_c)
+            : c(in_c){}
+
+            typename ContainerType::reference operator[](typename ContainerType::size_type s) { return c.at(s); }
+
+            ContainerType c;
+        };
+
+    void Exe()
+    {
+        // ContainerCtrl<int> my_ctrl(3);
+
+        int init[] = {0, 1, 2, 3};
+        MyContainer<int> my_container(&init[0], &init[3]);
+        ContainerCtrl<MyContainer<int>> my_ctrl(my_container);
+
+        std::cout << "2nd element is: " << my_ctrl[2] << std::endl;
+    }
+}
+
+namespace TryTypeName
+{
+    template <typename T>
+        struct C
+        {
+            typedef T value_type;
+        };
+
+    struct D : private C<int>
+    {
+        size_t SizeOfElement() const { return sizeof(value_type); }
+        void Set(value_type v){}
+    };
+
+    void Exe()
+    {
+        D d;
+        // d.Set("hello world");
+        d.Set(100);
+    }
+}
+
 int main(int argc, char* argv[])
 {
     ReturnType::Exe();
+
+    TemplateType::Exe();
 
     return 0;
 }

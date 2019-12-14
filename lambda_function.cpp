@@ -5,6 +5,8 @@
 #include <cstdlib>
 #include <ctime>
 #include <functional>
+#include <utility>
+#include <chrono>
 
 // one of the most exciting feature of c++ 11 is ability to create lambda functions
 
@@ -179,6 +181,86 @@ namespace SomeExperiments
     }
 }
 
+namespace ClampExperiment
+{
+    struct MeasureTime 
+    {
+        MeasureTime(const std::string& in_title)
+            : start(std::chrono::system_clock::now()),
+              title(in_title){};
+        ~MeasureTime()
+        {
+            auto end = std::chrono::system_clock::now();
+            std::chrono::duration<double> diff = end-start;
+            std::cout << title << ": " << diff.count() << " s" << std::endl;
+        }
+        decltype(std::chrono::system_clock::now()) start;
+        std::string title;
+    };
+
+    template <typename FxnType, typename... Args>
+        void FxnTime(const std::string& str, FxnType f, Args&&... args)
+    {
+        MeasureTime m(str);
+        f(std::forward<decltype(args)>(args)...);
+    }
+
+    // Unbelievable confusing code :D
+    template <typename T> decltype(auto) Clamp(const T& t_min, const T& t, const T& t_max)
+    {
+        return [](const T& t_min, const T& t, const T& t_max){
+            return
+                [](const T& t, const T& t_max){ return t>t_max ? t_max : t; } (
+                [](const T& t_min, const T& t){ return t<t_min ? t_min : t; }(t_min, t), 
+             t_max);
+        }(t_min, t, t_max);
+    }
+
+    template <typename T> const T& NormalClamp(const T& t_min, const T& t, const T& t_max)
+    {
+        if(t<t_min) return t_min;
+        if(t>t_max) return t_max;
+        return t;
+    }
+
+    void ExperimentLambda(int val_min, int val, int val_max)
+    {
+        for (int i=0; i<10000; i++)
+        {
+            Clamp(val_min, val, val_max);
+        }
+    }
+
+    void ExperimentNormal(int val_min, int val, int val_max)
+    {
+        for (int i=0; i<10000; i++)
+        {
+            NormalClamp(val_min, val, val_max);
+        }
+    }
+
+    void Exe()
+    {
+        std::cout << "Clamp(3, 2, 100)= " << Clamp(3, 2, 100) << std::endl;
+        std::cout << "NormalClamp(3, 2, 100)= " << NormalClamp(3, 2, 100) << std::endl;
+        std::cout << "Clamp(1, 2, 100)= " << Clamp(1, 100, 2) << std::endl;
+        std::cout << "NormalClamp(1, 2, 100)= " << NormalClamp(1, 100, 2) << std::endl;
+        std::cout << "Clamp(0, 130, 255)= " << Clamp(0, 130, 255) << std::endl;
+        std::cout << "NormalClamp(0, 130, 255)= " << NormalClamp(0, 130, 255) << std::endl;
+        std::cout << "Clamp(0, -99, 255)= " << Clamp(0, 1024, 255) << std::endl;
+        std::cout << "NormalClamp(0, -99, 255)= " << NormalClamp(0, 1024, 255) << std::endl;
+
+        FxnTime("Clamp implemented with lambda, no clamp", ExperimentLambda, 0, 130, 255);
+        FxnTime("Clamp implemented with Normal, no clamp", ExperimentNormal, 0, 130, 255);
+
+        FxnTime("Clamp implemented with lambda, clamp bottom", ExperimentLambda, 0, -130, 255);
+        FxnTime("Clamp implemented with Normal, clamp bottom", ExperimentNormal, 0, -130, 255);
+
+        FxnTime("Clamp implemented with lambda, clamp top", ExperimentLambda, 0, 1300, 255);
+        FxnTime("Clamp implemented with Normal, clamp top", ExperimentNormal, 0, 1300, 255);
+    }
+}
+
 // So, how are lambda closures implemented? 
 // lambdas are implemented as a small class, and it overloads the operator()
 
@@ -198,6 +280,8 @@ int main(int argc, char* argv[])
     LambdaAndForEach::Exe(my_vec);
 
     SomeExperiments::Exe();
+
+    ClampExperiment::Exe();
 
     return 0;
 }
