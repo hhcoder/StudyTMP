@@ -154,8 +154,8 @@ namespace Playground
         BufType* output_buf;
         LambdaFxn proc_each;
 
-        // static std::queue<Func*> func_queue;
-        // static void Register(Func* in) { func_queue.push(in); }
+        // static std::vector<unique_ptr<Func>> func_queue;
+        // static void Register(unique_ptr<Func>& in) { func_queue.push_back(in); }
     };
 
 }
