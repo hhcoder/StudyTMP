@@ -105,11 +105,58 @@ namespace TryTypeName
     }
 }
 
+namespace CanITeamplteTypeSelf
+{
+    // This is fine
+    struct MyStruct
+    {
+        MyStruct* p_next;
+    };
+
+    // Th is fine
+    struct MyStruct2
+    {
+        void DoSomething(MyStruct2& v) { std::cout << v.v << std::endl; }
+        int v;
+    };
+
+    // This is fine, too
+    template <typename T>
+        void Dump(const T& t) { std::cout << t << std::endl; }
+
+    template <typename T>
+        struct MyStruct3
+        {
+            T* next;
+        };
+
+    void Exe()
+    {
+        MyStruct2 s;
+        s.DoSomething(s);
+
+        Dump(4.355);
+
+        MyStruct3<double> m;
+
+        // Will this even compile?
+        // MyStruct3<MyStruct3> mm;
+        // NO
+        // Following error
+        // "expected type, got ‘MyStruct3’"
+
+        // So, you cannot struct template yourself, that's interesting :D
+        //  because it's not even "a type" from compiler point of view
+    }
+}
+
 int main(int argc, char* argv[])
 {
     ReturnType::Exe();
 
     TemplateType::Exe();
+
+    CanITeamplteTypeSelf::Exe();
 
     return 0;
 }

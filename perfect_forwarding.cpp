@@ -231,6 +231,20 @@ namespace HandleTypeCast
     }
 }
 
+namespace SimplerWay
+{
+    // It's so hard to remember this... :(
+    template <typename T, typename... Arg>
+        void DoSomething(Arg&&... params)
+        {
+            T t(std::forward(params...));
+        }
+
+    void Exe()
+    {
+    }
+}
+
 int main(int argc, char* argv[])
 {
     StudyPerfectForward::Try1::Exe();
