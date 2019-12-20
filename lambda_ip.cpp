@@ -5,6 +5,7 @@
 #include <functional>
 #include <queue>
 #include <iomanip>
+#include <memory>
 
 namespace Playground
 {
@@ -78,13 +79,13 @@ namespace Playground
     }
 
     template <typename BufType>
-    struct Func
+    struct FuncImpl
     {
         using PixelType = typename BufType::value_type;
         using PixelRef = typename BufType::reference;
         using LambdaFxn = std::function<PixelType(BufType&, int, int)>;
 
-        Func(const std::string& in_name, BufType& in_buf, LambdaFxn in_proc_each)
+        FuncImpl(const std::string& in_name, BufType& in_buf, LambdaFxn in_proc_each)
             : name(in_name),
               input_buf(&in_buf),
               output_buf(nullptr),
@@ -93,21 +94,21 @@ namespace Playground
             // Register(this);
         }
 
-        Func(BufType& buf){}
+        FuncImpl(BufType& buf){}
 
-        ~Func()
+        ~FuncImpl()
         {
             if(output_buf!=nullptr)
                 delete output_buf;
         }
     //
-    //     Func(Func& in_prev_func, std::function<void(int, int)> in_proc_each)
-    //         : prev_func(in_prev_func), proc_each(in_proc_each)
+    //     FuncImpl(FuncImpl& in_prev_FuncImpl, std::FuncImpltion<void(int, int)> in_proc_each)
+    //         : prev_FuncImpl(in_prev_FuncImpl), proc_each(in_proc_each)
     //     {
-    //         RegisterFuncList();
+    //         RegisterFuncImplList();
     //     }
     //
-    //     Func& SetOutput(int w, int h)
+    //     FuncImpl& SetOutput(int w, int h)
     //     {
     //         Buf2D<PixelType> out_buf(w, h);
     //
@@ -117,7 +118,7 @@ namespace Playground
     //         return *this;
     //     }
     //
-        Func& Run()
+        FuncImpl& Run()
         {
             auto ConvertXFromOutToIn=[](int v){ return v; };
             auto ConvertYFromOutToIn=[](int v){ return v; };
@@ -137,13 +138,13 @@ namespace Playground
             return *this;
         }
 
-        Func& Print()
+        FuncImpl& Print()
         {
             output_buf->Print();
             return *this;
         }
 
-        Func& WriteToFile(const std::string& fname)
+        FuncImpl& WriteToFile(const std::string& fname)
         {
             WriteToFile(fname, *output_buf);
             return *this;
@@ -154,10 +155,37 @@ namespace Playground
         BufType* output_buf;
         LambdaFxn proc_each;
 
-        // static std::vector<unique_ptr<Func>> func_queue;
-        // static void Register(unique_ptr<Func>& in) { func_queue.push_back(in); }
+        // static std::vector<unique_ptr<FuncImpl>> FuncImpl_queue;
+        // static void Register(unique_ptr<FuncImpl>& in) { FuncImpl_queue.push_back(in); }
     };
 
+    template <typename BufferType>
+    struct Func
+    {
+        template <typename ...Args>
+        Func(Args&&... args)
+        {
+            // PtrType p(new ItemType(std::forward<Args>(args)...));
+            c.emplace_back( FuncImplType(std::forward<Args>(args)...) );
+        }
+
+        static decltype(auto) Run()
+        {
+            for (auto i=std::begin(c); i!=std::end(c); i++)
+                i->Run();
+
+            return *std::rbegin(c);
+        }
+
+        using FuncImplType = FuncImpl<BufferType>;
+        using ContainerType = std::vector<FuncImplType>;
+        // using ContainerType = std::vector<FuncImpl<BufferType>>;
+
+        static ContainerType c;
+    };
+
+    template <typename BufferType>
+       typename Func<BufferType>::ContainerType Func<BufferType>::c;
 }
 
 int main(int argc, char* argv[])
@@ -177,7 +205,7 @@ int main(int argc, char* argv[])
 
     // input_buf.Print();
 
-    // Func<GrayImg> func_img(input_buf);
+    // FuncImpl<GrayImg> FuncImpl_img(input_buf);
     //
 
     const int grid_width = 3;
@@ -193,8 +221,10 @@ int main(int argc, char* argv[])
                     return 0;
             });
 
-    grid_src.Run()
-            .Print();
+    // grid_src.Run()
+    //         .Print();
+
+    Func<GrayImg>::Run().Print();
 
     //
     // Func hori_blur(grid_src, [](int x, int y){
