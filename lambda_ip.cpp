@@ -29,16 +29,13 @@ namespace Playground
                     [](const T& t_min, const T& t){ return t<t_min ? t_min : t; }(t_min, t), 
                  t_max);
             }(t_min, t, t_max);
-        // Normal version implementation
-        //     if(t<t_min) return t_min;
-        //     if(t>t_max) return t_max;
-        //     return t;
+            // Normal version implementation:
+            //     if(t<t_min) return t_min;
+            //     if(t>t_max) return t_max;
+            //     return t;
         }
 
-        decltype(auto) operator()(int x, int y) 
-        {
-                return at(x, y);
-        }
+        decltype(auto) operator()(int x, int y) { return at(x, y); }
 
         decltype(auto) operator[](size_type s) { return c[s]; }
 
@@ -154,9 +151,6 @@ namespace Playground
         BufType* input_buf; 
         BufType* output_buf;
         LambdaFxn proc_each;
-
-        // static std::vector<unique_ptr<FuncImpl>> FuncImpl_queue;
-        // static void Register(unique_ptr<FuncImpl>& in) { FuncImpl_queue.push_back(in); }
     };
 
     template <typename BufferType>
@@ -165,7 +159,6 @@ namespace Playground
         template <typename ...Args>
         Func(Args&&... args)
         {
-            // PtrType p(new ItemType(std::forward<Args>(args)...));
             c.emplace_back( FuncImplType(std::forward<Args>(args)...) );
         }
 
@@ -179,7 +172,6 @@ namespace Playground
 
         using FuncImplType = FuncImpl<BufferType>;
         using ContainerType = std::vector<FuncImplType>;
-        // using ContainerType = std::vector<FuncImpl<BufferType>>;
 
         static ContainerType c;
     };
@@ -197,17 +189,6 @@ int main(int argc, char* argv[])
     using GrayImg = Buf2D<std::vector<uint8_t>>;
     GrayImg input_buf(im_width, im_height);
 
-    // for (int j=0; j<im_height; j++)
-    //     for (int i=0; i<im_width; i++)
-    //         input_buf(i, j) = i+j;
-
-    // WriteToFile("./g.y", input_buf);
-
-    // input_buf.Print();
-
-    // FuncImpl<GrayImg> FuncImpl_img(input_buf);
-    //
-
     const int grid_width = 3;
     const int grid_height = 2;
 
@@ -221,21 +202,20 @@ int main(int argc, char* argv[])
                     return 0;
             });
 
-    // grid_src.Run()
-    //         .Print();
+    Func<GrayImg> hori_blur(
+            std::string("Horizontal Blur"),
+            grid_src, 
+            [](GrayImg& in_buf, int x, int y){
+                return 
+                ( 1*in_buf(x-2, y) + 
+                  4*in_buf(x-1, y) + 
+                  6*in_buf(x,   y) + 
+                  4*in_buf(x+1, y) +
+                  1*in_buf(x+2, y) ) >> 4;
+            });
 
     Func<GrayImg>::Run().Print();
 
-    //
-    // Func hori_blur(grid_src, [](int x, int y){
-    //     return 
-    //     ( 1*in_buf(x-2, y) + 
-    //       4*in_buf(x-1, y) + 
-    //       6*in_buf(x,   y) + 
-    //       4*in_buf(x+1, y) +
-    //       1*in_buf(x+2, y) ) >> 4;
-    // });
-    //
     // Func vert_blur(hori_blur, [](int x, int y){
     //     return 
     //     ( 1*in_buf(x, y-2) + 
