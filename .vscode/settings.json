@@ -1,0 +1,10 @@
+{
+    "gotoSymbolStack.currentStackPosition": 0,
+    "gotoSymbolStack.maxStackPosition": 0,
+    "gotoSymbolStack.filePositionInfo": [],
+    "workbench.colorCustomizations": {
+        "activityBar.background": "#1F330C",
+        "titleBar.activeBackground": "#2B4711",
+        "titleBar.activeForeground": "#F7FCF2"
+    }
+}
